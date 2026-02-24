@@ -1,0 +1,1345 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta charset="UTF-8" />
+    <title>⚡ Polymath's Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link rel="icon" href="https://mindstacksync.netlify.app/apple-touch-icon.png" />
+    <style>
+      body { font-family: Arial, sans-serif; background: #0f0f0f; color: #eaeaea; padding: 15px; }
+      h1 { color: #00cc88; font-size: 1.8rem; margin-bottom: 20px; }
+      .card { background: #1a1a1a; border-radius: 10px; margin-bottom: 20px; border: none; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); }
+      .card-body { padding: 15px; }
+      .btn { margin-top: 10px; font-weight: bold; border-radius: 6px; }
+      .btn-primary { background: #00cc88; border: none; color: #000; }
+      .btn-secondary { background: #333; border: none; color: #ccc; }
+      .btn-secondary:hover { background: #444; color: #fff; }
+      .btn-danger { background: #ff4444; border: none; }
+      .btn-success { background: #00cc88; border: none; color: #000; }
+      .btn-info { background: #00aaff; border: none; color: #000; }
+
+      .switch { position: relative; display: inline-block; width: 44px; height: 22px; margin: 0; }
+      .switch input { opacity: 0; width: 0; height: 0; }
+      .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #444; transition: 0.4s; border-radius: 34px; }
+      .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: 0.4s; border-radius: 50%; }
+      input:checked + .slider { background-color: #ff9900; }
+      input:checked + .slider:before { transform: translateX(22px); }
+
+      .btn-view { background: #222; color: #888; border: 1px solid #333; flex-grow: 1; padding: 6px; font-size: 0.85rem; }
+      .btn-view.active { background: #00cc88; color: #000; font-weight: bold; border-color: #00cc88; }
+
+      .locked { background: repeating-linear-gradient(45deg, #161616, #161616 10px, #222 10px, #222 20px) !important; color: #555 !important; border-color: #333 !important; cursor: not-allowed; }
+      .locked::placeholder { color: #555 !important; font-style: italic; }
+
+      @keyframes glowPulse {
+        0% { box-shadow: 0 0 5px rgba(0, 255, 170, 0.4); border-color: #00ffaa; }
+        50% { box-shadow: 0 0 20px rgba(0, 255, 170, 0.8); border-color: #fff; }
+        100% { box-shadow: 0 0 5px rgba(0, 255, 170, 0.4); border-color: #00ffaa; }
+      }
+      .celebration-card { animation: glowPulse 2s infinite; border: 2px solid #00ffaa !important; background: linear-gradient(145deg, #1a1a1a, #0d3322); transition: all 0.3s ease-in-out; }
+
+      .progress { background: #333; height: 14px; margin-bottom: 8px; border-radius: 4px; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5); }
+      .progress-bar { font-size: 10px; line-height: 14px; background: #00cc88; transition: width 0.5s ease; font-weight: bold; color: #000; text-align: center; }
+
+      .form-control { background: #222; color: #eaeaea; border: 1px solid #444; border-radius: 6px; }
+      .form-control:focus { background: #2a2a2a; color: #fff; border-color: #00cc88; box-shadow: none; }
+      .form-group { margin-bottom: 10px; }
+      label { font-weight: bold; font-size: 0.9rem; color: #bbb; margin-bottom: 4px; }
+
+      .table-dark { background-color: #222; border-radius: 6px; overflow: hidden; margin-bottom: 0; }
+      .table-dark th, .table-dark td { border-color: #333; vertical-align: middle; padding: 6px; text-align: center; }
+      .edit-input { padding: 4px; font-size: 0.9rem; height: 30px; text-align: center; }
+      .collapse-btn { background: #222; color: #00cc88; border: 1px solid #333; text-align: left; padding: 12px 15px; font-size: 1.1rem; }
+
+     /* Calendar */
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+      }
+      .calendar-header {
+        text-align: center;
+        font-size: 0.75rem;
+        color: #888;
+        font-weight: bold;
+        padding-bottom: 5px;
+      }
+      .calendar-day {
+        background: #222;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 4px;
+        min-height: 60px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        transition: 0.2s;
+        overflow: hidden; /* Prevents long text from breaking the box */
+      }
+      .calendar-day:hover {
+        background: #2a2a2a;
+        border-color: #00cc88;
+      }
+      .calendar-day.today {
+        border: 1px solid #00cc88;
+        box-shadow: inset 0 0 5px rgba(0, 204, 136, 0.3);
+      }
+      .calendar-day.live-session {
+        border-color: #ff4444;
+        background: #3a1a1a;
+      }
+      .calendar-day.exam-day {
+        border: 2px solid #00aaff;
+        box-shadow: inset 0 0 6px rgba(0, 170, 255, 0.2);
+      }
+      .date-num {
+        font-size: 0.8rem;
+        color: #ccc;
+        font-weight: bold;
+        align-self: flex-start;
+        line-height: 1;
+      }
+      /* New classes for mobile containment */
+      .cal-badge {
+        font-size: 0.65rem !important;
+        padding: 2px 4px;
+        margin-top: 3px !important;
+        width: 100%;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+      .cal-exam-text {
+        font-size: 0.55rem;
+        color: #00aaff;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+        margin-top: 2px;
+      }
+
+      /* Mobile Specific Adjustments */
+      @media (max-width: 576px) {
+        .calendar-grid { gap: 2px; }
+        .calendar-day { min-height: 50px; padding: 2px; border-radius: 4px; }
+        .calendar-header { font-size: 0.65rem; }
+        .date-num { font-size: 0.7rem; }
+        .cal-badge { font-size: 0.55rem !important; margin-top: 2px !important; }
+        .cal-exam-text { font-size: 0.5rem; }
+      }
+      .modal-content { background: #1a1a1a; color: #eaeaea; border: 1px solid #333; }
+      .nav-tabs .nav-link { color: #888; border: 1px solid transparent; }
+      .nav-tabs .nav-link.active { color: #00cc88; background-color: #222; border-color: #333 #333 #222; }
+      .validation-warning { color: #ff4444; font-size: 0.85rem; font-weight: bold; display: none; margin-top: 10px; background: #3a1a1a; padding: 10px; border-radius: 6px; border: 1px solid #ff4444; }
+      .reward-box { background: #222; border: 1px solid #333; padding: 10px; border-radius: 6px; margin-bottom: 10px; }
+
+      #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f0f0f; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      .login-box { background: #1a1a1a; padding: 30px; border-radius: 10px; border: 1px solid #333; text-align: center; width: 300px; box-shadow: 0 4px 15px rgba(0, 204, 136, 0.2); }
+      .main-app-content { display: none; }
+    </style>
+  </head>
+  <body>
+    <div id="loginOverlay">
+      <div class="login-box">
+        <h3 style="color: #00cc88; margin-bottom: 20px;">🔒 Enter PIN</h3>
+        <input type="password" id="pinInput" class="form-control mb-3" placeholder="••••" style="text-align: center; font-size: 1.5rem; letter-spacing: 5px;">
+        <button class="btn btn-primary btn-block" onclick="attemptLogin()">Unlock Engine</button>
+        <div id="loginError" style="color: #ff4444; font-size: 0.85rem; margin-top: 10px; display: none;">❌ Incorrect PIN</div>
+      </div>
+    </div>
+ 
+    <div class="main-app-content">
+    <div class="container">
+      <h1 class="text-center" id="ui_appTitle">⚡ Dashboard</h1>
+
+      <div class="card">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <span style="color: #888; font-size: 0.9rem">Today</span><br /><strong id="today" style="font-size: 1.1rem"></strong>
+          </div>
+          <div class="text-right">
+            <span style="color: #888; font-size: 0.9rem" id="ui_timeRemLabel">Time Remaining</span><br />
+            <strong id="remainingTime" style="color: #00cc88; font-size: 1.2rem"></strong><br />
+            <span id="availCapacityText" style="font-size: 0.75rem; color: #aaa"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="engineCard" style="border-left: 4px solid #00cc88">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between border-bottom border-secondary pb-2 mb-3">
+            <strong style="font-size: 1.1rem; color: #eaeaea" id="ui_customerLabel">Customer Present?</strong>
+            <label class="switch"><input type="checkbox" id="customerToggle" onchange="decide()" /><span class="slider"></span></label>
+          </div>
+
+          <div class="btn-group w-100 mb-3" role="group">
+            <button type="button" class="btn btn-view active" id="btn-daily" onclick="setView('daily')">Daily Pace</button>
+            <button type="button" class="btn btn-view" id="btn-weekly" onclick="setView('weekly')">Weekly Pace</button>
+            <button type="button" class="btn btn-view" id="btn-monthly" onclick="setView('monthly')">Monthly Pace</button>
+          </div>
+
+          <div style="background: #222; padding: 15px; border-radius: 8px; border: 1px solid #333;">
+            <span style="color: #888; font-size: 0.85rem; text-transform: uppercase" id="ui_priorityLabel">Priority Task To Execute:</span><br />
+            <div id="decisionText" style="font-size: 1.35rem; font-weight: bold; color: #fff; margin-top: 5px;"></div>
+            <div id="decisionSubtext" style="font-size: 0.9rem; color: #aaa; margin-top: 4px"></div>
+            <div id="dynamicRewardsContainer" class="mt-3 pt-3" style="border-top: 1px solid #444"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h3 style="font-size: 1.3rem; margin-bottom: 15px" id="ui_logTitle">⏱️ Log Hours</h3>
+          <div class="row" id="logInputsContainer"></div>
+          <div class="row mt-2">
+            <div class="col-12 form-group">
+              <label for="otherInput" style="color: #888" id="ui_otherLabel">Other Misc Tasks</label>
+              <input type="number" class="form-control log-input" id="otherInput" step="0.5" min="0" oninput="validateLogInputs()" />
+            </div>
+          </div>
+          <div id="logValidationWarning" class="validation-warning"></div>
+          <button id="saveProgressBtn" class="btn btn-primary btn-block mt-2" style="padding: 12px; font-size: 1.1rem" onclick="addToday()" id="ui_btnSaveLog">
+            SAVE PROGRESS
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h3 style="font-size: 1.3rem; margin-bottom: 5px" id="ui_histTitle">📅 Work History</h3>
+          <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+            <button class="btn btn-sm btn-secondary" onclick="changeMonth(-1)">&#8592; Prev</button>
+            <strong id="calendarMonthYear" style="font-size: 1.1rem; color: #00cc88"></strong>
+            <button class="btn btn-sm btn-secondary" onclick="changeMonth(1)">Next &#8594;</button>
+          </div>
+          <div class="calendar-wrapper" id="calendarSection"></div>
+        </div>
+      </div>
+      
+      <button class="btn btn-block collapse-btn mb-3" type="button" data-toggle="collapse" data-target="#analyticsCollapse" id="ui_analyticsBtn" style="color: #bbb">
+        📊 View Analytics & Progress ▼
+      </button>
+      <div class="collapse" id="analyticsCollapse">
+        <div class="card" id="alignmentSection"></div>
+        <div class="card" id="wastedSection"></div>
+        <div class="card" id="dailySection"></div>
+        <div class="card" id="weeklySection"></div>
+      </div>
+
+      <button class="btn btn-block collapse-btn mb-4" type="button" data-toggle="collapse" data-target="#settingsCollapse" style="color: #bbb">
+        ⚙️ Settings & Controls ▼
+      </button>
+      <div class="collapse" id="settingsCollapse">
+        <div class="card">
+          <div class="card-body">
+            <button class="btn btn-outline-danger btn-block mb-3" onclick="logoutApp()">🚪 Lock / Logout</button>
+            <button class="btn btn-info btn-block mb-3" onclick="openAdvancedConfig()">🔧 Advanced Engine Config</button>
+            <button class="btn btn-secondary btn-block" onclick="toggleEdit('data')">Edit Data Matrix (D/W/M)</button>
+            <button class="btn btn-secondary btn-block" onclick="toggleEdit('targets')">Edit Targets (D/W/M)</button>
+
+            <div id="editBox" style="display: none; margin-top: 15px; padding: 10px; background: #222; border-radius: 8px; overflow-x: auto;"></div>
+
+            <hr style="border-color: #333; margin: 20px 0" />
+            <div class="card mb-3" style="border: 1px solid #ff9900">
+              <div class="card-body">
+                <h5 style="color: #ff9900">🔑 Change PIN</h5>
+                <input type="password" id="newPinInput" class="form-control mb-2" placeholder="Enter new 4+ digit PIN" style="text-align: center; letter-spacing: 2px;" />
+                <button class="btn btn-outline-warning btn-block" onclick="updateAppPin()">Save New PIN</button>
+              </div>
+            </div>
+            <h6 style="color: #00aaff">💾 Data Portability</h6>
+            <button class="btn btn-secondary btn-block mb-2" onclick="exportJSON()">⬇️ Export Data (JSON)</button>
+            <label class="btn btn-secondary btn-block mb-0" style="cursor: pointer">
+              ⬆️ Import Data (JSON)
+              <input type="file" id="importFile" accept=".json" style="display: none" onchange="importJSON(event)" />
+            </label>
+            <hr style="border-color: #333; margin: 20px 0" />
+
+            <div class="card mb-3" style="border: 1px solid #00aaff">
+              <div class="card-body">
+                <h5 style="color: #00aaff">☁️ 1-Code Cloud Sync</h5>
+
+                <div id="cloudLoginSection">
+                  <label style="font-size: 0.8rem; color: #aaa">Enter your Bin ID and Master Key to unlock sync</label>
+                  <input type="text" id="cloudBinId" class="form-control mb-2" placeholder="Paste Bin ID here..." />
+                  <input type="password" id="cloudCode" class="form-control mb-2" placeholder="Paste secret Master Key here..." />
+                  <div id="cloudAuthError" style="color: #ff4444; font-size: 0.85rem; display: none; margin-bottom: 10px;">❌ Incorrect Bin ID or Secret Code!</div>
+                  <button id="cloudLoginBtn" class="btn btn-outline-info w-100" onclick="loginCloud()">Unlock Cloud</button>
+                </div>
+
+                <div id="cloudSyncSection" style="display: none">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-success" style="font-weight: bold">✅ Cloud Unlocked</span>
+                    <span id="ui_syncTime" style="font-size: 0.75rem; color: #aaa">Never Synced</span>
+                  </div>
+
+                  <div class="d-flex" style="gap: 10px">
+                    <button class="btn btn-primary flex-grow-1" onclick="pushToCloud()" title="Save local data to Cloud">☁️ Push (Save)</button>
+                    <button class="btn btn-secondary flex-grow-1" onclick="pullFromCloud()" title="Load latest data from Cloud">📥 Pull (Load)</button>
+                  </div>
+                  <button class="btn btn-sm btn-danger mt-2 w-100" onclick="logoutCloud()" style="opacity: 0.8">Lock / Logout</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-danger btn-block" onclick="resetAll()">Factory Reset App</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="resetModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title text-danger">⚠️ Confirm Reset</h5>
+            <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+          </div>
+          <div class="modal-body">Erase all data?</div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button class="btn btn-danger" onclick="performReset()">Yes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="dayDetailModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header" style="border-bottom: 1px solid #333">
+            <h5 class="modal-title" id="dayModalTitle" style="color: #00cc88">Date</h5>
+            <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex justify-content-between align-items-center p-3 mb-3" style="background: #222; border-radius: 8px; border: 1px solid #444;">
+              <div><strong style="color: #ff4444; font-size: 1.1rem">🔴 Live Session Day</strong></div>
+              <label class="switch"><input type="checkbox" id="liveSessionToggle" /><span class="slider"></span></label>
+            </div>
+            <table class="table table-dark table-sm table-bordered mt-2 text-center" id="dayLogTable"></table>
+          </div>
+          <div class="modal-footer" style="border-top: 1px solid #333">
+            <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button class="btn btn-success" onclick="saveDayHistory()">Save Sync</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="configModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header" style="border-bottom: 1px solid #333">
+            <h5 class="modal-title" style="color: #00aaff">🔧 Engine Configuration</h5>
+            <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+          </div>
+          <div class="modal-body">
+            <ul class="nav nav-tabs mb-3" id="configTabs">
+              <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#tab-tasks">Tasks</a></li>
+              <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-sys">System & Time</a></li>
+              <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-rewards">Rewards</a></li>
+              <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-strings">Text/UI</a></li>
+            </ul>
+
+            <div class="tab-content">
+              <div class="tab-pane fade show active" id="tab-tasks">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <strong>Strict Lock Mode</strong><label class="switch"><input type="checkbox" id="cfg_strictLock" /><span class="slider"></span></label>
+                </div>
+                <div id="hierarchyEditor"></div>
+                <button class="btn btn-sm btn-outline-success mt-2 w-100" onclick="addNewTask()">+ Add Task</button>
+                <hr class="border-secondary mt-4 mb-3" />
+                <div class="d-flex align-items-center mb-2">
+                  <h6 class="mb-0 mr-2" style="color: #00aaff;">Exams (Bypasses Hierarchy <</h6>
+                  <input type="number" id="cfg_examDays" class="form-control form-control-sm text-center" style="width: 60px; font-weight: bold;">
+                  <h6 class="mb-0 ml-2" style="color: #00aaff;">Days)</h6>
+                </div>
+                <div id="examList" class="mb-2"></div>
+                <div class="row">
+                  <div class="col-4"><input type="text" id="newExamName" class="form-control" placeholder="Name" /></div>
+                  <div class="col-4"><input type="date" id="newExamDate" class="form-control" /></div>
+                  <div class="col-4"><select id="newExamTask" class="form-control"></select></div>
+                </div>
+                <button class="btn btn-sm btn-info mt-2" onclick="addExam()">+ Add Exam</button>
+              </div>
+
+              <div class="tab-pane fade" id="tab-sys">
+                <h6 style="color: #00cc88">Time Bounds</h6>
+                <div class="row mb-3">
+                  <div class="col-6"><label>Wake Up Time</label><input type="time" class="form-control" id="cfg_wake" /></div>
+                  <div class="col-6"><label>Sleep Time</label><input type="time" class="form-control" id="cfg_sleep" /></div>
+                </div>
+                <h6 style="color: #00cc88">Live Session Rules</h6>
+                <div class="row mb-3">
+                  <div class="col-6"><label>Duration (Hours)</label><input type="number" class="form-control" id="cfg_liveDur" step="0.5" min="0" /></div>
+                  <div class="col-6"><label>Is Productive Time?</label><select class="form-control" id="cfg_liveProd"><option value="true">Yes (Counts as work)</option><option value="false">No (Neutral deduction)</option></select></div>
+                </div>
+                <h6 style="color: #00cc88">Time Wasted Formula (Productive Tasks)</h6>
+                <p style="font-size: 0.8rem; color: #aaa">Select which tasks count as 'Productive' when calculating wasted time.</p>
+                <div id="wasteLogicEditor" class="d-flex flex-wrap" style="gap: 10px"></div>
+              </div>
+
+              <div class="tab-pane fade" id="tab-rewards">
+                <p style="font-size: 0.8rem; color: #aaa">Dynamic reward evaluations based on specific task progress.</p>
+                <div id="rewardsListEditor"></div>
+                <button class="btn btn-sm btn-outline-warning mt-3 w-100" onclick="addNewReward()">+ Add New Reward</button>
+              </div>
+
+              <div class="tab-pane fade" id="tab-strings">
+                <p style="font-size: 0.8rem; color: #aaa">Customize global display labels.</p>
+                <div id="stringsEditor"></div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer" style="border-top: 1px solid #333">
+            <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button class="btn btn-success" onclick="saveEngineConfig()">Save Engine Configuration</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div aria-live="polite" aria-atomic="true" style="position: fixed; top: 20px; right: 20px; z-index: 1050; min-width: 250px;">
+      <div id="toastContainer"></div>
+    </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+      /* ================= 1. DYNAMIC CONFIG ENGINE ================= */
+      let defaultConfig = {
+        sys: {
+          wake: "06:00",
+          sleep: "22:30",
+          liveDur: 3.0,
+          liveIsProductive: false,
+          strictLocks: true,
+          examBypassDays: 60
+        },
+        strings: {
+          appTitle: "⚡ Polymath's Dashboard",
+          timeRemLabel: "Time Remaining",
+          customerLabel: "Job time?",
+          priorityLabel: "Priority Task To Execute:",
+          logTitle: "⏱️ Log Hours",
+          otherLabel: "Other Misc Tasks",
+          btnSaveLog: "SAVE PROGRESS",
+          histTitle: "📅 Work History",
+          analyticsBtn: "📊 View Analytics & Progress ▼",
+          wasteTitle: "🗑️ Time Wasted Analysis",
+          alignTitle: "🧠 Strategic Alignment",
+          priorityMetText: "🌟 Pacing Met!",
+          priorityMetSubtext: "Proceed to next logical step.",
+          baseReqText: "{TaskName}",
+          // baseReqSubtext: "",
+          customerPriorityText: "CSustenance Mode",
+          customerPrioritySubtext: "Process and clear.",
+        },
+        tasks: {
+          gita: { name: "Gita (Base)", color: "#eaeaea", alwaysOpen: true, bypassLive: true, showInDaily: true },
+          psych: { name: "Psychology", color: "#ff9900", alwaysOpen: true, bypassLive: false, showInDaily: true },
+          anthro: { name: "Anthropology", color: "#55aaff", alwaysOpen: false, bypassLive: false, showInDaily: false },
+        },
+        hierarchy: ["gita", "psych", "anthro"],
+        exams: [],
+        targets: { gita: 7, psych: 28, anthro: 10 },
+        monthlyTargets: { gita: 30, psych: 120, anthro: 40 },
+        dailyFixed: { gita: 1, psych: 4 },
+        maxDaily: { gita: 1.5, psych: 6, anthro: 4 },
+        wasteProductive: ["gita", "psych", "anthro"],
+        rewards: [
+          { id: "r1", name: "✈️ Trip Eligibility", metric: "monthly", threshold: 85, enabled: true, tasks: ["gita", "psych", "anthro"] }
+        ],
+      };
+
+      // Migration / Loading
+      if (!localStorage.getItem("config")) localStorage.setItem("config", JSON.stringify(defaultConfig));
+      let config = JSON.parse(localStorage.getItem("config"));
+
+      if (!config.sys.strictLocks) config.sys.strictLocks = true; 
+      if (config.sys.examBypassDays === undefined) config.sys.examBypassDays = 60; 
+
+      if (!config.sys) config.sys = { wake: "06:00", sleep: "22:30", liveDur: config.liveSessionHours || 3.0, liveIsProductive: false, strictLocks: config.strictLocks !== false, examBypassDays: 60 };
+      if (!config.strings) config.strings = defaultConfig.strings;
+      if (!config.strings.priorityMetText) Object.assign(config.strings, defaultConfig.strings); 
+      delete config.strings.baseReqSubtext; // Cleans up the obsolete string
+      if (!config.wasteProductive) config.wasteProductive = [...config.hierarchy];
+      if (!config.rewards) config.rewards = defaultConfig.rewards;
+
+      const now = new Date();
+      const todayStr = now.toDateString();
+      $("#today").text(now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }));
+
+      let lockState = {}, previousLockState = {}, isFirstRender = true;
+      let currentDecisionView = "daily", displayedYear = now.getFullYear(), displayedMonth = now.getMonth(), selectedModalDate = null, currentEdit = null;
+
+      /* ================= 2. DATA INIT ================= */
+      function getWeekStart(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        return new Date(d.setDate(d.getDate() - day + (day === 0 ? -6 : 1))).toDateString();
+      }
+      const currentMonthKey = now.getFullYear() + "-" + now.getMonth();
+      const initData = () => {
+        let d = { other: 0 };
+        config.hierarchy.forEach((id) => (d[id] = 0));
+        return d;
+      };
+
+      if (localStorage.getItem("todayDate") !== todayStr) {
+        localStorage.setItem("todayDate", todayStr);
+        localStorage.setItem("todayData", JSON.stringify(initData()));
+      }
+      if (localStorage.getItem("weekStart") !== getWeekStart(now)) {
+        localStorage.setItem("weekStart", getWeekStart(now));
+        localStorage.setItem("weeklyData", JSON.stringify(initData()));
+      }
+      if (localStorage.getItem("monthStart") !== currentMonthKey) {
+        localStorage.setItem("monthStart", currentMonthKey);
+        localStorage.setItem("monthlyData", JSON.stringify(initData()));
+      }
+      if (!localStorage.getItem("workHistory")) localStorage.setItem("workHistory", JSON.stringify({}));
+
+      let workHistory = JSON.parse(localStorage.getItem("workHistory"));
+      if (!workHistory[todayStr]) {
+        workHistory[todayStr] = { ...initData(), isLiveSession: false };
+        localStorage.setItem("workHistory", JSON.stringify(workHistory));
+      }
+      let todayData = JSON.parse(localStorage.getItem("todayData")),
+        weekly = JSON.parse(localStorage.getItem("weeklyData")),
+        monthly = JSON.parse(localStorage.getItem("monthlyData"));
+      if (todayData.other === undefined) todayData.other = 0;
+
+      /* ================= 3. CORE TIME & MATH ENGINE ================= */
+      function parseTime(timeStr) {
+        const [h, m] = timeStr.split(":").map(Number);
+        return h + m / 60;
+      }
+
+      function getRemainingClockHours() {
+        const c = new Date(), s = new Date();
+        const [sh, sm] = config.sys.sleep.split(":").map(Number);
+        s.setHours(sh, sm, 0, 0);
+        return c >= s ? 0 : (s - c) / (1000 * 60 * 60);
+      }
+
+      function getTotalCapacity(dateStr) {
+        let wake = parseTime(config.sys.wake), sleep = parseTime(config.sys.sleep);
+        let cap = sleep - wake;
+        if (cap < 0) cap += 24;
+        let isLive = workHistory[dateStr]?.isLiveSession || false;
+        if (isLive && !config.sys.liveIsProductive) cap -= config.sys.liveDur;
+        return cap;
+      }
+
+      function progressBar(v, t, color = "#00cc88") {
+        const p = Math.min(100, (v / t) * 100) || 0;
+        return `<div class="progress"><div class="progress-bar" style="width:${p}%; background:${color};">${p > 5 ? p.toFixed(0) + "%" : ""}</div></div>`;
+      }
+
+      /* ================= 4. UI BUILDERS & MODALS ================= */
+      function applyStrings() {
+        for (let key in config.strings) {
+          if ($(`#ui_${key}`).length) $(`#ui_${key}`).text(config.strings[key]);
+        }
+      }
+
+      function injectInfoModal() {
+        if ($("#dynamicInfoModal").length) return;
+        $("body").append(`
+          <div class="modal fade" id="dynamicInfoModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header" style="border-bottom: 1px solid #333;">
+                    <h5 class="modal-title" id="infoModalTitle" style="color:#00cc88;">Task Breakdown</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body" id="infoModalBody" style="font-size:0.9rem;"></div>
+              </div>
+            </div>
+          </div>
+        `);
+      }
+
+      function buildDynamicInputs() {
+        let html = "";
+        config.hierarchy.forEach((id) => {
+          let task = config.tasks[id];
+          let extra = task.alwaysOpen ? `<span style="font-size:0.75rem; color:#aaa;">(Always)</span>` : "";
+          html += `
+        <div class="col-6 form-group">
+            <label id="${id}Label" for="${id}Input" style="color: ${task.color}; display:flex; justify-content:space-between; align-items:center; width: 100%;">
+                <span>${task.name} ${extra}</span>
+                <span style="cursor:pointer; font-size:1.1rem;" onclick="showInfoModal('${id}')" title="View dynamic breakdown">ℹ️</span>
+            </label>
+            <input type="number" class="form-control log-input" id="${id}Input" step="0.5" min="0" oninput="validateLogInputs()">
+            <div id="limits_${id}" style="font-size:0.75rem; color:#888; margin-top:3px; font-weight:normal; background:#1a1a1a; padding:3px 5px; border-radius:4px; border:1px solid #333;"></div>
+        </div>`;
+        });
+        $("#logInputsContainer").html(html);
+      }
+
+      function showInfoModal(id) {
+        let task = config.tasks[id];
+        let pos = config.hierarchy.indexOf(id) + 1;
+        let reqD = config.dailyFixed[id] || 0, reqW = config.targets[id] || 0, reqM = config.monthlyTargets[id] || 0;
+        let deps = [];
+        for (let i = 0; i < pos - 1; i++) {
+          let depId = config.hierarchy[i];
+          if (todayData[depId] < (config.dailyFixed[depId] || 0)) deps.push(config.tasks[depId].name);
+        }
+
+        let isLive = workHistory[todayStr]?.isLiveSession || false;
+        let bypassStatus = isLive && task.bypassLive ? "<span class='text-warning'>Bypassed (Live Session Today)</span>" : "Active Restrictions Apply";
+
+        let html = `
+            <div style="background:#222; padding:12px; border-radius:6px; margin-bottom:15px; border-left:4px solid ${task.color};">
+                <strong style="color:${task.color}; font-size:1.2rem;">${task.name}</strong><br>
+                <span style="color:#aaa;">Hierarchy Priority Position: <strong class="text-white">${pos} of ${config.hierarchy.length}</strong></span><br>
+                <span style="color:#aaa;">Completion Today: <strong class="text-white">${todayData[id]}h / ${reqD}h</strong> (${((todayData[id] / reqD) * 100 || 0).toFixed(0)}%)</span>
+            </div>
+            <h6 style="color:#00aaff; border-bottom:1px solid #444; padding-bottom:4px;">Mandatory Limits Derivation</h6>
+            <ul style="color:#ccc; padding-left:20px; font-size:0.85rem;">
+                <li><strong>Daily Base Requirement:</strong> ${reqD}h</li>
+                <li><strong>Weekly Target Scope:</strong> ${reqW}h</li>
+                <li><strong>Monthly Target Scope:</strong> ${reqM}h</li>
+                <li><strong>Calculated Pace (Recommend):</strong> ${recommended(id)}h based on weekly remainder.</li>
+            </ul>
+            <h6 style="color:#ff9900; border-bottom:1px solid #444; padding-bottom:4px; margin-top:15px;">Constraint Engine & Triggers</h6>
+            <ul style="color:#ccc; padding-left:20px; font-size:0.85rem;">
+                <li><strong>Strict Lock Mode:</strong> ${config.sys.strictLocks ? "Enabled" : "Disabled"}</li>
+                <li><strong>Task Inherency:</strong> ${task.alwaysOpen ? "Always Open (Overrides limits)" : "Bound to hierarchy rules"}</li>
+                <li><strong>Time Constraint Context:</strong> ${bypassStatus}</li>
+                <li><strong>Current Blocking Dependencies:</strong> ${deps.length > 0 ? `<span class="text-danger">${deps.join(", ")}</span>` : `<span class="text-success">None (Cleared to execute)</span>`}</li>
+            </ul>
+            <h6 style="color:#00ffaa; border-bottom:1px solid #444; padding-bottom:4px; margin-top:15px;">Reward Network Impact</h6>
+            <ul style="color:#ccc; padding-left:20px; font-size:0.85rem;">
+                ${config.rewards.filter((r) => r.enabled && r.tasks.includes(id)).map((r) => `<li>Feeds into: <strong>${r.name}</strong> (${r.metric} threshold at ${r.threshold}%)</li>`).join("") || "<li>No active rewards directly tied.</li>"}
+            </ul>`;
+        $("#infoModalTitle").text(`ℹ️ Engine Breakdown`);
+        $("#infoModalBody").html(html);
+        $("#dynamicInfoModal").modal("show");
+      }
+
+      function recommended(id) {
+        const remD = 7 - (new Date().getDay() || 7) + 1;
+        const b = Math.max(0, (config.targets[id] || 0) - weekly[id]) / remD;
+        const t = Math.min(Math.min(b, config.maxDaily[id] || 24), getRemainingClockHours());
+        if (config.dailyFixed[id]) {
+          const d = Math.max(0, config.dailyFixed[id] - todayData[id]);
+          if (d > 0) return d.toFixed(1);
+        }
+        return Math.max(0, t).toFixed(1);
+      }
+
+      function validateLogInputs() {
+        let totalInput = 0;
+        $(".log-input").each(function () { totalInput += +$(this).val() || 0; });
+        const sumLogged = config.hierarchy.concat(["other"]).reduce((sum, id) => sum + (todayData[id] || 0), 0);
+        let cap = getTotalCapacity(todayStr);
+        if (workHistory[todayStr]?.isLiveSession && config.sys.liveIsProductive) cap -= config.sys.liveDur;
+
+        if (sumLogged + totalInput > cap + 0.01) {
+          $("#logValidationWarning").show().text(`⚠️ Invalid: Input total exceeds available capacity.`);
+          $("#saveProgressBtn").prop("disabled", true);
+        } else if (totalInput < 0) {
+          $("#logValidationWarning").show().text(`⚠️ Invalid: Negative numbers not allowed.`);
+          $("#saveProgressBtn").prop("disabled", true);
+        } else {
+          $("#logValidationWarning").hide();
+          $("#saveProgressBtn").prop("disabled", false);
+        }
+      }
+
+      /* ================= 5. REWARDS ENGINE ================= */
+      function renderDynamicRewards() {
+        let html = "", engineGlow = false;
+        config.rewards.filter((r) => r.enabled).forEach((r) => {
+            let scores = [];
+            r.tasks.forEach((id) => {
+              let tgt = r.metric === "monthly" ? config.monthlyTargets[id] : r.metric === "weekly" ? config.targets[id] : config.dailyFixed[id];
+              let act = r.metric === "monthly" ? monthly[id] : r.metric === "weekly" ? weekly[id] : todayData[id];
+              if (tgt > 0) scores.push(Math.min(100, ((act || 0) / tgt) * 100));
+            });
+            let finalScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+            let achieved = finalScore >= r.threshold;
+            if (achieved) engineGlow = true;
+            let color = achieved ? "#00ffaa" : finalScore >= r.threshold * 0.8 ? "#ff9900" : "#ff4444";
+
+            html += `<div class="reward-box">
+                <div class="d-flex justify-content-between mb-1">
+                    <span style="font-size:0.85rem; color:${achieved ? "#00ffaa" : "#ccc"}; font-weight:bold;">${r.name}</span>
+                    <span style="font-size:0.85rem; color:${color};">${finalScore.toFixed(1)}% / ${r.threshold}%</span>
+                </div>
+                ${progressBar(finalScore, 100, color)}
+            </div>`;
+          });
+        $("#dynamicRewardsContainer").html(html);
+        if (engineGlow) $("#engineCard").addClass("celebration-card");
+        else $("#engineCard").removeClass("celebration-card");
+      }
+
+      /* ================= 6. VALIDATION & SAVE MECHANICS ================= */
+      function autoCorrectData() {
+        for (let id of config.hierarchy.concat(["other"])) {
+          let dv = parseFloat($(`#ed_${id}`).val()) || 0, wv = parseFloat($(`#ew_${id}`).val()) || 0, mv = parseFloat($(`#em_${id}`).val()) || 0;
+          if (dv < 0) dv = 0;
+          if (wv < dv) wv = dv;
+          if (mv < wv) mv = wv;
+          $(`#ed_${id}`).val(dv); $(`#ew_${id}`).val(wv); $(`#em_${id}`).val(mv);
+        }
+        $("#matrixWarn").hide();
+        $("#saveDataBtn").prop("disabled", false);
+      }
+
+      function autoCorrectTgt() {
+        for (let id of config.hierarchy) {
+          let dv = parseFloat($(`#df_${id}`).val()) || 0, wv = parseFloat($(`#dt_${id}`).val()) || 0, mv = parseFloat($(`#dm_${id}`).val()) || 0;
+          if (dv < 0) dv = 0;
+          if (wv < dv) wv = dv;
+          if (mv < wv) mv = wv;
+          $(`#df_${id}`).val(dv); $(`#dt_${id}`).val(wv); $(`#dm_${id}`).val(mv);
+        }
+        $("#targetWarn").hide();
+        $("#saveTgtBtn").prop("disabled", false);
+      }
+
+      function toggleEdit(mode) {
+        const box = $("#editBox");
+        if (currentEdit === mode && box.is(":visible")) { box.slideUp(); currentEdit = null; return; }
+        currentEdit = mode;
+        let html = `<h5 style="color:#00cc88;">${mode === "data" ? "Edit Data Matrix" : "Edit Targets (D/W/M)"}</h5><table class="table table-dark table-sm"><tr><th>Task</th><th>D</th><th>W</th><th>M</th></tr>`;
+        if (mode === "data") {
+          config.hierarchy.concat(["other"]).forEach((id) => (html += `<tr><td>${id === "other" ? "Other" : config.tasks[id].name}</td><td><input class="form-control edit-input dm-input" id="ed_${id}" value="${todayData[id] || 0}" type="number" step="0.5" min="0" oninput="autoCorrectData()"></td><td><input class="form-control edit-input dm-input" id="ew_${id}" value="${weekly[id] || 0}" type="number" step="0.5" min="0" oninput="autoCorrectData()"></td><td><input class="form-control edit-input dm-input" id="em_${id}" value="${monthly[id] || 0}" type="number" step="0.5" min="0" oninput="autoCorrectData()"></td></tr>`));
+          html += `</table><div id="matrixWarn" class="validation-warning"></div><button id="saveDataBtn" class="btn btn-success btn-block mt-2" onclick="saveDataGrid()">Save & Recalculate</button>`;
+        } else {
+          config.hierarchy.forEach((id) => (html += `<tr><td>${config.tasks[id].name}</td><td><input class="form-control edit-input tm-input" id="df_${id}" value="${config.dailyFixed[id] || 0}" type="number" step="0.5" min="0" oninput="autoCorrectTgt()"></td><td><input class="form-control edit-input tm-input" id="dt_${id}" value="${config.targets[id] || 0}" type="number" step="0.5" min="0" oninput="autoCorrectTgt()"></td><td><input class="form-control edit-input tm-input" id="dm_${id}" value="${config.monthlyTargets[id] || 0}" type="number" step="0.5" min="0" oninput="autoCorrectTgt()"></td></tr>`));
+          html += `</table><div id="targetWarn" class="validation-warning"></div><button id="saveTgtBtn" class="btn btn-success btn-block mt-2" onclick="saveDefaults()">Save & Recalculate</button>`;
+        }
+        box.html(html).slideDown();
+        if (mode === "data") autoCorrectData(); else autoCorrectTgt();
+      }
+
+      function saveDataGrid() {
+        config.hierarchy.concat(["other"]).forEach((id) => {
+          todayData[id] = +$(`#ed_${id}`).val(); weekly[id] = +$(`#ew_${id}`).val(); monthly[id] = +$(`#em_${id}`).val();
+        });
+        localStorage.setItem("todayData", JSON.stringify(todayData));
+        localStorage.setItem("weeklyData", JSON.stringify(weekly));
+        localStorage.setItem("monthlyData", JSON.stringify(monthly));
+        $("#editBox").slideUp(); currentEdit = null; render();
+        showToast("success", "Data Saved & Engine Recalculated");
+      }
+
+      function saveDefaults() {
+        config.hierarchy.forEach((id) => {
+          config.dailyFixed[id] = +$(`#df_${id}`).val(); config.targets[id] = +$(`#dt_${id}`).val(); config.monthlyTargets[id] = +$(`#dm_${id}`).val();
+        });
+        localStorage.setItem("config", JSON.stringify(config));
+        $("#editBox").slideUp(); currentEdit = null; render();
+        showToast("success", "Targets Saved & Engine Recalculated");
+      }
+
+      function addToday() {
+        let hasAdd = false;
+        config.hierarchy.concat(["other"]).forEach((id) => {
+          let val = +$(`#${id}Input`).val() || 0;
+          if (val > 0) {
+            hasAdd = true;
+            todayData[id] += val; weekly[id] += val; monthly[id] += val;
+            workHistory[todayStr][id] = (workHistory[todayStr][id] || 0) + val;
+          }
+        });
+        if (hasAdd) {
+          localStorage.setItem("todayData", JSON.stringify(todayData));
+          localStorage.setItem("weeklyData", JSON.stringify(weekly));
+          localStorage.setItem("monthlyData", JSON.stringify(monthly));
+          localStorage.setItem("workHistory", JSON.stringify(workHistory));
+          $("input[type=number]").val(""); render();
+          showToast("success", "Progress logged!");
+        }
+      }
+
+      /* ================= 7. ENGINE CONFIG MODAL ================= */
+      function openAdvancedConfig() {
+        $("#cfg_strictLock").prop("checked", config.sys.strictLocks);
+        let hHtml = "";
+        config.hierarchy.forEach((id, idx) => {
+          let t = config.tasks[id];
+          hHtml += `<div class="d-flex align-items-center mb-2 p-2" style="background:#222; border-left:4px solid ${t.color}; border-radius:4px; gap:10px;"><button class="btn btn-sm btn-danger" onclick="delTask('${id}')">X</button><div class="d-flex flex-column"><button class="btn btn-sm btn-secondary p-0" style="height:20px; width:20px;" onclick="moveHier(${idx}, -1)" ${idx === 0 ? "disabled" : ""}>▲</button><button class="btn btn-sm btn-secondary p-0" style="height:20px; width:20px;" onclick="moveHier(${idx}, 1)" ${idx === config.hierarchy.length - 1 ? "disabled" : ""}>▼</button></div><div class="flex-grow-1"><input type="text" class="form-control form-control-sm mb-1" id="name_${id}" value="${t.name}"><div class="d-flex" style="gap:10px; font-size:0.75rem; color:#aaa;"><label><input type="color" id="col_${id}" value="${t.color}"> Color</label><label><input type="checkbox" id="ao_${id}" ${t.alwaysOpen ? "checked" : ""}> Open</label><label><input type="checkbox" id="bl_${id}" ${t.bypassLive ? "checked" : ""}> Bypass Live</label><label><input type="checkbox" id="sd_${id}" ${t.showInDaily ? "checked" : ""}> Show Daily</label></div></div></div>`;
+        });
+        $("#hierarchyEditor").html(hHtml);
+
+        $("#cfg_examDays").val(config.sys.examBypassDays);
+        let eHtml = "";
+        config.exams.forEach((e, idx) => {
+          eHtml += `<div class="d-flex justify-content-between p-1 bg-dark border border-secondary mb-1"><span>${e.name} (${e.date})</span><button class="btn btn-sm btn-danger py-0" onclick="deleteExam(${idx})">X</button></div>`;
+        });
+        $("#examList").html(eHtml);
+        let sel = "";
+        config.hierarchy.forEach((id) => (sel += `<option value="${id}">${config.tasks[id].name}</option>`));
+        $("#newExamTask").html(sel);
+
+        $("#cfg_wake").val(config.sys.wake); $("#cfg_sleep").val(config.sys.sleep);
+        $("#cfg_liveDur").val(config.sys.liveDur); $("#cfg_liveProd").val(config.sys.liveIsProductive.toString());
+        let wHtml = "";
+        config.hierarchy.concat(["other"]).forEach((id) => {
+          let checked = config.wasteProductive.includes(id) ? "checked" : "";
+          let name = id === "other" ? "Other Misc" : config.tasks[id].name;
+          wHtml += `<label class="bg-dark p-2 border border-secondary rounded"><input type="checkbox" class="waste-cb" value="${id}" ${checked}> ${name}</label>`;
+        });
+        $("#wasteLogicEditor").html(wHtml);
+
+        let sHtml = "";
+        for (let key in config.strings) { sHtml += `<div class="form-group mb-2"><label style="font-size:0.75rem;">${key}</label><input type="text" class="form-control form-control-sm str-input" data-key="${key}" value="${config.strings[key]}"></div>`; }
+        $("#stringsEditor").html(sHtml);
+
+        renderRewardsEditor();
+        $("#configModal").modal("show");
+      }
+
+      function renderRewardsEditor() {
+        let rHtml = "";
+        config.rewards.forEach((r, idx) => {
+          let tks = "";
+          config.hierarchy.forEach((id) => { tks += `<label class="mr-2" style="font-size:0.75rem;"><input type="checkbox" class="rew-tk-${idx}" value="${id}" ${r.tasks.includes(id) ? "checked" : ""}> ${config.tasks[id].name}</label>`; });
+          rHtml += `<div class="p-2 mb-2" style="background:#222; border:1px solid #444; border-radius:6px;">
+                <div class="d-flex justify-content-between mb-1"><input type="text" class="form-control form-control-sm w-50" id="rw_name_${idx}" value="${r.name}"><button class="btn btn-sm btn-danger py-0" onclick="delReward(${idx})">X</button></div>
+                <div class="row no-gutters mb-1"><div class="col-4 pr-1"><select class="form-control form-control-sm" id="rw_met_${idx}"><option value="daily" ${r.metric === "daily" ? "selected" : ""}>Daily</option><option value="weekly" ${r.metric === "weekly" ? "selected" : ""}>Weekly</option><option value="monthly" ${r.metric === "monthly" ? "selected" : ""}>Monthly</option></select></div><div class="col-4 px-1"><input type="number" class="form-control form-control-sm" id="rw_thr_${idx}" placeholder="Threshold %" value="${r.threshold}"></div><div class="col-4 pl-1 d-flex align-items-center"><label class="mb-0 ml-2" style="font-size:0.8rem;"><input type="checkbox" id="rw_en_${idx}" ${r.enabled ? "checked" : ""}> Enabled</label></div></div>
+                <div class="mt-1 border-top border-secondary pt-1">${tks}</div></div>`;
+        });
+        $("#rewardsListEditor").html(rHtml);
+      }
+
+      function moveHier(idx, dir) { let arr = config.hierarchy; let temp = arr[idx]; arr[idx] = arr[idx + dir]; arr[idx + dir] = temp; openAdvancedConfig(); }
+      function addNewTask() {
+        let newId = "t_" + Date.now();
+        config.tasks[newId] = { name: "New Task", color: "#ffffff", alwaysOpen: false, bypassLive: false, showInDaily: true };
+        config.hierarchy.push(newId); config.wasteProductive.push(newId); config.targets[newId] = 0; config.dailyFixed[newId] = 0; config.monthlyTargets[newId] = 0;
+        todayData[newId] = 0; weekly[newId] = 0; monthly[newId] = 0; openAdvancedConfig();
+      }
+      function delTask(id) { if (confirm("Remove?")) { config.hierarchy = config.hierarchy.filter((x) => x !== id); openAdvancedConfig(); } }
+      function deleteExam(idx) { config.exams.splice(idx, 1); openAdvancedConfig(); }
+      
+      function addExam() {
+        let n = $("#newExamName").val().trim(), d = $("#newExamDate").val(), t = $("#newExamTask").val();
+        if (n && d) {
+          let exists = config.exams.find(e => e.name === n && e.date === d && e.taskId === t);
+          if (!exists) { config.exams.push({ id: Date.now(), name: n, date: d, taskId: t }); openAdvancedConfig(); }
+          else { alert("⚠️ Exam already exists for this exact task and date."); }
+        }
+      }
+      
+      function addNewReward() { config.rewards.push({ id: "r_" + Date.now(), name: "New Reward", metric: "monthly", threshold: 100, enabled: true, tasks: [...config.hierarchy] }); renderRewardsEditor(); }
+      function delReward(idx) { config.rewards.splice(idx, 1); renderRewardsEditor(); }
+
+      function saveEngineConfig() {
+        config.sys.strictLocks = $("#cfg_strictLock").is(":checked");
+        config.sys.wake = $("#cfg_wake").val() || "06:00"; config.sys.sleep = $("#cfg_sleep").val() || "22:30";
+        config.sys.liveDur = parseFloat($("#cfg_liveDur").val()) || 3.0; config.sys.liveIsProductive = $("#cfg_liveProd").val() === "true";
+        config.sys.examBypassDays = parseInt($("#cfg_examDays").val()) || 60;
+
+        config.hierarchy.forEach((id) => {
+          config.tasks[id].name = $(`#name_${id}`).val(); config.tasks[id].color = $(`#col_${id}`).val();
+          config.tasks[id].alwaysOpen = $(`#ao_${id}`).is(":checked"); config.tasks[id].bypassLive = $(`#bl_${id}`).is(":checked"); config.tasks[id].showInDaily = $(`#sd_${id}`).is(":checked");
+        });
+
+        config.wasteProductive = []; $(".waste-cb:checked").each(function () { config.wasteProductive.push($(this).val()); });
+        $(".str-input").each(function () { config.strings[$(this).data("key")] = $(this).val(); });
+
+        config.rewards.forEach((r, idx) => {
+          r.name = $(`#rw_name_${idx}`).val(); r.metric = $(`#rw_met_${idx}`).val(); r.threshold = parseFloat($(`#rw_thr_${idx}`).val()) || 0;
+          r.enabled = $(`#rw_en_${idx}`).is(":checked"); r.tasks = [];
+          $(`.rew-tk-${idx}:checked`).each(function () { r.tasks.push($(this).val()); });
+        });
+
+        localStorage.setItem("config", JSON.stringify(config));
+        $("#configModal").modal("hide"); buildDynamicInputs(); render();
+        showToast("success", "Engine Config Saved & Recalculated!");
+      }
+
+      /* ================= 8. MAIN RENDER ROUTINE ================= */
+      function render() {
+        applyStrings();
+        $("#remainingTime").text(getRemainingClockHours().toFixed(1) + " hrs");
+        $("#availCapacityText").text(`Daily Total Capacity: ${getTotalCapacity(todayStr)}h`);
+        validateLogInputs(); renderDynamicRewards();
+
+        let isLiveToday = workHistory[todayStr]?.isLiveSession || false, previousMet = true;
+
+        config.hierarchy.forEach((id) => {
+          let task = config.tasks[id], el = $(`#${id}Input`), req = config.dailyFixed[id] || 0, isDone = todayData[id] >= req;
+
+          $(`#limits_${id}`).html(`Req: <strong style="color:#00cc88;">${req}h</strong> | Pace: ${recommended(id)}h | W-Tgt: ${config.targets[id] || 0}h | M-Tgt: ${config.monthlyTargets[id] || 0}h`);
+          if (isLiveToday && task.bypassLive) { isDone = true; $(`#${id}Label span:first`).html(`${task.name} <span style='color:#aaa; font-size:0.8rem;'>(Today is Live Day)</span>`); }
+          else { $(`#${id}Label span:first`).html(`${task.name} ${task.alwaysOpen ? `<span style="font-size:0.75rem; color:#aaa;">(Always Open)</span>` : ""}`); }
+
+          let locked = config.sys.strictLocks ? !previousMet : false;
+          if (task.alwaysOpen) locked = false;
+
+          let bypassDays = config.sys.examBypassDays || 60;
+          config.exams.forEach(e => {
+            if (e.taskId === id) {
+              let daysAway = Math.ceil((new Date(e.date) - now) / 86400000);
+              if (daysAway >= 0 && daysAway <= bypassDays) locked = false;
+            }
+          });
+
+          if (!isFirstRender && previousLockState[id] === true && locked === false) {
+            showToast("success", `🎉 ${task.name} unlocked! Proceed.`);
+            el.addClass("celebration-card"); setTimeout(() => el.removeClass("celebration-card"), 1500);
+          }
+          previousLockState[id] = locked;
+
+          if (locked) { el.prop("disabled", true).addClass("locked").attr("placeholder", "🔒 Locked"); }
+          else { el.prop("disabled", false).removeClass("locked").attr("placeholder", recommended(id) + "h"); }
+          if (!isDone) previousMet = false;
+        });
+        $("#otherInput").attr("placeholder", "0.0h"); isFirstRender = false;
+
+        const prodToday = config.wasteProductive.reduce((sum, id) => sum + (todayData[id] || 0), 0) + (isLiveToday && config.sys.liveIsProductive ? config.sys.liveDur : 0);
+        const wD = Math.max(0, getTotalCapacity(todayStr) - prodToday);
+        $("#wastedSection").html(`<div class="card-body"><h5 style="color:#ff4444; margin-bottom: 15px;" id="ui_wasteTitle">${config.strings.wasteTitle}</h5><table class="table table-dark table-sm table-bordered text-center mb-0"><thead style="color:#aaa; font-size: 0.85rem;"><tr><th>Span</th><th>Avail Cap</th><th>Productive</th><th>Waste</th></tr></thead><tbody style="font-size: 0.95rem;"><tr><td>Today</td><td>${getTotalCapacity(todayStr)}h</td><td>${prodToday.toFixed(1)}h</td><td class="${wD > 0 ? "text-danger" : "text-success"}"><strong>${wD.toFixed(1)}h</strong></td></tr></tbody></table></div>`);
+
+        let exHTML = "";
+        let bypassDays = config.sys.examBypassDays || 60;
+        
+        let activeExams = [];
+        let futureExams = [];
+
+        config.exams
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+          .forEach((e) => {
+            let d = Math.ceil((new Date(e.date) - now) / 86400000);
+            
+            if (d >= 0) {
+              let isEngaged = d <= bypassDays;
+              let taskName = config.tasks[e.taskId] ? config.tasks[e.taskId].name : "Unknown";
+              let exactDate = new Date(e.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+              
+              // Runway logic: 100% means full window available, shrinking down to 0%
+              let pctLeft = bypassDays > 0 ? Math.max(0, Math.min(100, (d / bypassDays) * 100)) : 0;
+              
+              // Color shifting based on runway remaining
+              let pColor = d > (bypassDays * 0.5) ? "#00ffaa" : (d > 14 ? "#ff9900" : "#ff4444");
+
+              let cardHtml = `
+                <div class="mb-2 p-2 border rounded" style="background:#1a1a1a; border-color: ${isEngaged ? pColor : '#333'} !important; transition: border-color 0.3s;">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span style="color:#fff; font-weight:bold; font-size:1.05rem;">${e.name}</span>
+                    <strong style="color:${isEngaged ? pColor : '#00aaff'};">${d} Days Left</strong>
+                  </div>
+                  
+                  <div class="d-flex justify-content-between align-items-center mb-2" style="font-size:0.8rem; color:#aaa;">
+                    <span>📅 ${exactDate}</span>
+                    <span style="background:#222; padding:2px 6px; border-radius:4px; border:1px solid #444;">
+                      🔓 Unlocks: <span style="color:#fff;">${taskName}</span>
+                    </span>
+                  </div>
+                  
+                  ${isEngaged 
+                    ? `<div class="d-flex justify-content-between mb-1" style="font-size:0.75rem; color:#ccc;">
+                         <span>Prep Window Active <span style="color:#888;">(${bypassDays}d bypass)</span></span>
+                         <span>${d}d runway left</span>
+                       </div>
+                       <div class="progress" style="background:#222; height:8px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);">
+                         <div class="progress-bar" style="width:${pctLeft}%; background:${pColor}; transition: width 1s ease-in-out, background-color 0.5s;"></div>
+                       </div>` 
+                    : `<div style="font-size:0.75rem; color:#888; text-align:center; padding-top:4px; border-top:1px dashed #333;">
+                         🔒 Hierarchy unlocks at <strong>${bypassDays} Days</strong> (in ${d - bypassDays}d)
+                       </div>`
+                  }
+                </div>`;
+                
+              if (isEngaged) activeExams.push(cardHtml);
+              else futureExams.push(cardHtml);
+            }
+          });
+
+        // Group active exams at the top, followed by future exams
+        exHTML = activeExams.join("") + futureExams.join("");
+        
+        let baseStatusHTML = '<span class="text-success"><strong>⚓ STABLE</strong></span>';
+        for (let id of config.hierarchy) { if ((config.dailyFixed[id] || 0) > 0 && todayData[id] < config.dailyFixed[id] && !(isLiveToday && config.tasks[id].bypassLive)) { baseStatusHTML = '<span class="text-danger"><strong>⚠️ CRACKING</strong></span>'; break; } }
+        $("#alignmentSection").html(`<div class="card-body"><h5 style="color:#ff9900; margin-bottom: 15px;" id="ui_alignTitle">${config.strings.alignTitle}</h5><div style="font-size: 0.95rem; background: #222; padding: 12px; border-radius: 6px; border: 1px solid #333;"><p class="mb-2"><strong>Baseplate:</strong> ${baseStatusHTML}</p><hr style="border-color:#444;"><h6 style="color:#aaa; font-size: 0.85rem; text-transform: uppercase;">⏳ Exam Countdowns</h6>${exHTML || '<span style="color:#888;">No upcoming exams.</span>'}</div></div>`);
+
+        let dHtml = `<div class="card-body"><h5 style="color:#00cc88;">📅 Daily</h5><div class="mt-3">`, wHtml = `<div class="card-body"><h5 style="color:#00cc88;">📊 Weekly</h5><div class="mt-3">`;
+        config.hierarchy.forEach((id) => {
+          if (config.tasks[id].showInDaily && config.dailyFixed[id]) dHtml += `<strong>${config.tasks[id].name}</strong> <span class="float-right">${todayData[id]}/${config.dailyFixed[id]}h</span>${progressBar(todayData[id], config.dailyFixed[id])}`;
+          wHtml += `<strong>${config.tasks[id].name}</strong> <span class="float-right">${weekly[id]}/${config.targets[id] || 0}h</span>${progressBar(weekly[id], config.targets[id] || 0)}`;
+        });
+        $("#dailySection").html(dHtml + `</div></div>`); $("#weeklySection").html(wHtml + `</div></div>`);
+
+        decide(); renderCalendar();
+      }
+
+      function setView(view) { currentDecisionView = view; $(".btn-view").removeClass("active"); $(`#btn-${view}`).addClass("active"); decide(); }
+    
+      function decide() {
+        if ($("#customerToggle").is(":checked")) {
+          $("#decisionText").html(`<span style="color:#ff9900;">${config.strings.customerPriorityText}</span>`);
+          $("#decisionSubtext").html(`<span style="color:#aaa;">${config.strings.customerPrioritySubtext}</span>`);
+          return;
+        }
+
+        let isLive = workHistory[todayStr]?.isLiveSession || false;
+        let bypassDays = config.sys.examBypassDays || 60;
+        let candidateTasks = [];
+
+        // Pacing helpers
+        let dObj = new Date();
+        let elapsedWeekDays = dObj.getDay() || 7; // 1 (Mon) to 7 (Sun)
+        let elapsedMonthDays = dObj.getDate();
+        let daysInMonth = new Date(dObj.getFullYear(), dObj.getMonth() + 1, 0).getDate();
+
+        for (let id of config.hierarchy) {
+          if (isLive && config.tasks[id].bypassLive) continue;
+
+          let dReq = config.dailyFixed[id] || 0, dDone = todayData[id] || 0;
+          let wReq = config.targets[id] || 0, wDone = weekly[id] || 0;
+          let mReq = config.monthlyTargets[id] || 0, mDone = monthly[id] || 0;
+
+          let isCandidate = false;
+          let primaryRemaining = 0;
+          let expectedPace = 0, currentDone = 0, reqPace = 0;
+
+          // Improvement 1: Contextual View Filtering
+          if (currentDecisionView === "daily" && dDone < dReq) {
+              isCandidate = true;
+              primaryRemaining = dReq - dDone;
+              expectedPace = dReq; 
+              currentDone = dDone;
+          } else if (currentDecisionView === "weekly" && wDone < wReq) {
+              isCandidate = true;
+              primaryRemaining = wReq - wDone;
+              expectedPace = (wReq / 7) * elapsedWeekDays; // Should have done X by this day of week
+              currentDone = wDone;
+              reqPace = wReq;
+          } else if (currentDecisionView === "monthly" && mDone < mReq) {
+              isCandidate = true;
+              primaryRemaining = mReq - mDone;
+              expectedPace = (mReq / daysInMonth) * elapsedMonthDays; // Should have done X by this day of month
+              currentDone = mDone;
+              reqPace = mReq;
+          }
+
+          if (isCandidate) {
+            let closestExamDays = Infinity;
+            config.exams.forEach(e => {
+              if (e.taskId === id) {
+                let d = Math.ceil((new Date(e.date) - now) / 86400000);
+                if (d >= 0 && d < closestExamDays) closestExamDays = d;
+              }
+            });
+
+            let urgencyLevel = "Low";
+            let urgencyColor = "#00cc88";
+            let urgencyScore = 0;
+
+            // Improvement 2: Contextual Pacing Math
+            if (closestExamDays <= bypassDays) {
+              urgencyLevel = "Very Urgent"; urgencyColor = "#ff4444"; urgencyScore += 10000;
+            } else if (currentDecisionView !== "daily" && currentDone < expectedPace - ((reqPace/7)*1.5)) {
+              urgencyLevel = "Very Urgent"; urgencyColor = "#ff4444"; urgencyScore += 5000;
+            } else if (currentDecisionView !== "daily" && currentDone < expectedPace) {
+              urgencyLevel = "Medium"; urgencyColor = "#ff9900"; urgencyScore += 2500;
+            } else if (currentDecisionView === "daily" && primaryRemaining >= (dReq * 0.75)) {
+              urgencyLevel = "Medium"; urgencyColor = "#ff9900"; urgencyScore += 2500;
+            }
+
+            urgencyScore -= closestExamDays; 
+            urgencyScore += (primaryRemaining * 10); 
+            urgencyScore += (config.hierarchy.length - config.hierarchy.indexOf(id));
+
+            candidateTasks.push({ 
+              id, name: config.tasks[id].name, 
+              primaryRemaining: Math.max(0, primaryRemaining).toFixed(1),
+              wTgt: wReq, wRem: Math.max(0, wReq - wDone), 
+              mTgt: mReq, mRem: Math.max(0, mReq - mDone), 
+              currentDone, expectedPace, // <--- NEW VARIABLES ADDED HERE
+              urgencyScore, urgencyLevel, urgencyColor 
+            });
+          }
+        }
+
+        candidateTasks.sort((a, b) => b.urgencyScore - a.urgencyScore);
+
+if (candidateTasks.length > 0) {
+          let topTask = candidateTasks[0];
+          let dynText = config.strings.baseReqText.replace("{TaskName}", topTask.name);
+          $("#decisionText").html(`<span style="color:#fff;">${dynText}</span>`);
+
+          let viewLabel = currentDecisionView.charAt(0).toUpperCase() + currentDecisionView.slice(1);
+          let subtextHtml = `<div class="mt-2" style="font-size:0.95rem; color:#ccc;">`;
+          
+          // 1. Core Remaining Text
+          subtextHtml += `<div class="mb-1">🎯 ${viewLabel} Remaining: <strong style="color:#ff9900;">${topTask.primaryRemaining}h</strong></div>`;
+
+          // 2. IN-CARD PROGRESS BAR 
+          let pTotal = currentDecisionView === "daily" ? config.dailyFixed[topTask.id] : currentDecisionView === "weekly" ? topTask.wTgt : topTask.mTgt;
+          let pDone = pTotal - topTask.primaryRemaining;
+          subtextHtml += `<div class="mb-2 w-75">${progressBar(pDone, pTotal, topTask.urgencyColor)}</div>`;
+
+          // 3. PACE DELTA & FORECASTING (Only for Weekly/Monthly)
+          if (currentDecisionView !== "daily" && topTask.primaryRemaining > 0) {
+              // Calculate Delta (Ahead or Behind)
+              let delta = topTask.currentDone - topTask.expectedPace;
+              let deltaColor = delta >= 0 ? "#00ffaa" : "#ff4444";
+              let deltaSign = delta >= 0 ? "+" : "";
+              let deltaIcon = delta >= 0 ? "🚀" : "⚠️";
+              
+              // Calculate Daily Catch-up Goal
+              let daysLeft = currentDecisionView === "weekly" ? (7 - elapsedWeekDays + 1) : (daysInMonth - elapsedMonthDays + 1);
+              let burnRate = (topTask.primaryRemaining / daysLeft).toFixed(1);
+
+              subtextHtml += `
+                <div class="mb-1" style="font-size:0.85rem; background:#222; border:1px solid #333; padding:6px; border-radius:4px;">
+                  <div>${deltaIcon} Pace Status: <strong style="color:${deltaColor};">${deltaSign}${delta.toFixed(1)}h</strong> (vs Expected)</div>
+                  <div style="color:#00aaff; margin-top:2px;">🔥 Required Pace: <strong>${burnRate}h / day</strong></div>
+                </div>`;
+          }
+
+          // 4. Urgency Badge
+          subtextHtml += `<div class="mt-2 mb-2 d-inline-block px-2 py-1 rounded" style="background:#2a2a2a; border:1px solid ${topTask.urgencyColor}; color:${topTask.urgencyColor}; font-weight:bold; font-size:0.8rem; box-shadow: 0 0 5px rgba(0,0,0,0.5);">⚡ Urgency: ${topTask.urgencyLevel}</div>`;
+          
+          // 5. "UP NEXT" QUEUE
+          if (candidateTasks.length > 1) {
+              let nextTask = candidateTasks[1];
+              subtextHtml += `<div class="mt-2 pt-2" style="border-top: 1px dashed #444; font-size: 0.8rem; color: #888;">
+                  ⏭️ Up Next: <span style="color:#aaa;">${nextTask.name}</span>
+              </div>`;
+          }
+
+          subtextHtml += `</div>`;
+          $("#decisionSubtext").html(subtextHtml);
+          return;
+        }
+
+        $("#decisionText").html(`<span style="color:#55aaff;">${config.strings.priorityMetText}</span>`);
+        $("#decisionSubtext").html(`<span style="color:#aaa;">${config.strings.priorityMetSubtext}</span>`);
+      }
+
+      /* ================= 9. CALENDAR & MODALS ================= */
+      function changeMonth(delta) {
+        displayedMonth += delta;
+        if (displayedMonth < 0) { displayedMonth = 11; displayedYear--; } else if (displayedMonth > 11) { displayedMonth = 0; displayedYear++; }
+        renderCalendar();
+      }
+      function renderCalendar() {
+        const firstDay = new Date(displayedYear, displayedMonth, 1).getDay(), daysInMonth = new Date(displayedYear, displayedMonth + 1, 0).getDate();
+        $("#calendarMonthYear").text(`${["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][displayedMonth]} ${displayedYear}`);
+        let html = `<div class="calendar-grid">` + ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => `<div class="calendar-header">${d}</div>`).join("");
+        for (let i = 0; i < firstDay; i++) html += `<div></div>`;
+        for (let d = 1; d <= daysInMonth; d++) {
+          let ds = new Date(displayedYear, displayedMonth, d).toDateString(), dat = workHistory[ds];
+          let tot = dat ? config.hierarchy.concat(["other"]).reduce((s, k) => s + (dat[k] || 0), 0) : 0;
+          let exm = config.exams.find((e) => new Date(e.date).toDateString() === ds);
+          html += `<div class="calendar-day ${dat?.isLiveSession ? "live-session" : ""} ${ds === todayStr ? "today" : ""} ${exm ? "exam-day" : ""}" onclick="openDayModal('${ds}')"><div class="date-num">${d}</div>${tot > 0 ? `<div class="badge badge-success mt-1" style="font-size:0.75rem;">${tot.toFixed(1)}h</div>` : ""}${dat?.isLiveSession ? `<div class="badge badge-danger mt-1" style="font-size:0.6rem;">LIVE</div>` : ""}${exm ? `<div style="font-size:0.6rem; color:#00aaff; text-align:center;">📅 ${exm.name}</div>` : ""}</div>`;
+        }
+        $("#calendarSection").html(html + `</div>`);
+      }
+
+      function openDayModal(ds) {
+        selectedModalDate = ds; let data = workHistory[ds] || { isLiveSession: false };
+        $("#dayModalTitle").text(new Date(ds).toLocaleDateString()); $("#liveSessionToggle").prop("checked", data.isLiveSession);
+        let html = `<thead style="color:#aaa;"><tr><th>Subject</th><th>Hours</th></tr></thead><tbody>`;
+        config.hierarchy.concat(["other"]).forEach((id) => (html += `<tr><td>${id === "other" ? "Other" : config.tasks[id].name}</td><td><input type="number" id="eh_${id}" class="form-control edit-input" value="${data[id] || 0}" step="0.5" min="0"></td></tr>`));
+        $("#dayLogTable").html(html + `</tbody>`); $("#dayDetailModal").modal("show");
+      }
+
+      function saveDayHistory() {
+        let ds = selectedModalDate, nData = { isLiveSession: $("#liveSessionToggle").is(":checked") }, sum = 0;
+        config.hierarchy.concat(["other"]).forEach((id) => { nData[id] = +$(`#eh_${id}`).val() || 0; sum += nData[id]; });
+        let cap = getTotalCapacity(ds);
+        if (nData.isLiveSession && config.sys.liveIsProductive) cap -= config.sys.liveDur;
+        if (sum > cap + 0.01) return alert(`Total hours (${sum}) exceeds the daily capacity for this date.`);
+
+        let old = workHistory[ds] || { isLiveSession: false }; workHistory[ds] = nData;
+        localStorage.setItem("workHistory", JSON.stringify(workHistory));
+        let dObj = new Date(ds), isWk = getWeekStart(dObj) === getWeekStart(now), isMo = dObj.getFullYear() === now.getFullYear() && dObj.getMonth() === now.getMonth();
+        if (ds === todayStr || isWk || isMo) {
+          config.hierarchy.concat(["other"]).forEach((id) => {
+            let diff = nData[id] - (old[id] || 0);
+            if (ds === todayStr) todayData[id] = Math.max(0, todayData[id] + diff);
+            if (isWk) weekly[id] = Math.max(0, weekly[id] + diff);
+            if (isMo) monthly[id] = Math.max(0, monthly[id] + diff);
+          });
+          localStorage.setItem("todayData", JSON.stringify(todayData)); localStorage.setItem("weeklyData", JSON.stringify(weekly)); localStorage.setItem("monthlyData", JSON.stringify(monthly));
+        }
+        $("#dayDetailModal").modal("hide"); render(); showToast("success", "History Sync Complete!");
+      }
+
+      function resetAll() { $("#resetModal").modal("show"); }
+      function performReset() { localStorage.clear(); location.reload(); }
+      function showToast(type, msg) {
+        const id = "toast-" + Date.now();
+        $("#toastContainer").append(`<div id="${id}" class="toast align-items-center text-white bg-success border-0" data-delay="3000"><div class="d-flex"><div class="toast-body"><b>${msg}</b></div><button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast">&times;</button></div></div>`);
+        $(`#${id}`).toast("show"); setTimeout(() => $(`#${id}`).remove(), 3500);
+      }
+
+      $(document).ready(() => { initNotifications(); checkAuth(); injectInfoModal(); buildDynamicInputs(); render(); setInterval(() => { render(); }, 60000); });
+
+      /* ================= 10. CLOUD SYNC & PORTABILITY ================= */
+      function exportJSON() {
+        const backup = { config: localStorage.getItem("config"), todayDate: localStorage.getItem("todayDate"), weekStart: localStorage.getItem("weekStart"), monthStart: localStorage.getItem("monthStart"), todayData: localStorage.getItem("todayData"), weeklyData: localStorage.getItem("weeklyData"), monthlyData: localStorage.getItem("monthlyData"), workHistory: localStorage.getItem("workHistory") };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
+        const a = document.createElement("a"); a.setAttribute("href", dataStr); a.setAttribute("download", `dashboard_backup_${new Date().toISOString().slice(0, 10)}.json`);
+        document.body.appendChild(a); a.click(); a.remove(); showToast("success", "Backup downloaded!");
+      }
+
+      function importJSON(event) {
+        const file = event.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const d = JSON.parse(e.target.result);
+            if (d && d.config) { for (let k in d) { if (d[k]) localStorage.setItem(k, d[k]); } alert("Data imported. Engine reloading."); location.reload(); }
+            else alert("Error: Invalid backup file.");
+          } catch (err) { alert("Error parsing JSON file."); }
+        };
+        reader.readAsText(file);
+      }
+
+      function updateSyncStatusUI() { const ls = localStorage.getItem("last_sync_time"); if (ls && $("#ui_syncTime").length) $("#ui_syncTime").text("Last Sync: " + ls); }
+      async function loginCloud() {
+        const binId = $("#cloudBinId").val().trim(), code = $("#cloudCode").val().trim();
+        if (!binId || !code) return alert("Enter Bin ID and Master Key.");
+        $("#cloudLoginBtn").text("Verifying...").prop("disabled", true); $("#cloudAuthError").hide();
+        try {
+          const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: { "X-Master-Key": code } });
+          if (res.ok) { localStorage.setItem("cloud_bin_id", binId); localStorage.setItem("cloud_key", code); $("#cloudLoginSection").hide(); $("#cloudSyncSection").show(); updateSyncStatusUI(); showToast("success", "Cloud Unlocked!"); $("#cloudBinId, #cloudCode").val(""); }
+          else $("#cloudAuthError").show();
+        } catch (e) { alert("Network error."); } finally { $("#cloudLoginBtn").text("Unlock Cloud").prop("disabled", false); }
+      }
+
+      function logoutCloud() { localStorage.removeItem("cloud_key"); localStorage.removeItem("cloud_bin_id"); $("#cloudBinId, #cloudCode").val(""); $("#cloudLoginSection").show(); $("#cloudSyncSection").hide(); showToast("success", "Cloud Locked."); }
+      
+      async function pushToCloud() {
+        const key = localStorage.getItem("cloud_key"), binId = localStorage.getItem("cloud_bin_id");
+        if (!key || !binId) return alert("Unlock cloud first.");
+        const payload = { config: localStorage.getItem("config"), todayData: localStorage.getItem("todayData"), weeklyData: localStorage.getItem("weeklyData"), monthlyData: localStorage.getItem("monthlyData"), workHistory: localStorage.getItem("workHistory"), todayDate: localStorage.getItem("todayDate"), weekStart: localStorage.getItem("weekStart"), monthStart: localStorage.getItem("monthStart"), app_pin_hash: localStorage.getItem("app_pin_hash"), clientTimestamp: new Date().toISOString() };
+        try {
+          const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": key }, body: JSON.stringify(payload) });
+          if (res.ok) { localStorage.setItem("last_sync_time", new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })); updateSyncStatusUI(); showToast("success", "Data Pushed to Cloud! ☁️"); }
+          else alert("Save failed. Limits exceeded?");
+        } catch (e) { alert("Network error saving to cloud."); }
+      }
+
+      async function pullFromCloud() {
+        const key = localStorage.getItem("cloud_key"), binId = localStorage.getItem("cloud_bin_id");
+        if (!key || !binId) return alert("Unlock cloud first.");
+        try {
+          const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: { "X-Master-Key": key } });
+          if (res.ok) {
+            const data = await res.json(), record = data.record;
+            if (record.config) { for (let k in record) { if (record[k] && k !== "clientTimestamp") localStorage.setItem(k, record[k]); } localStorage.setItem("last_sync_time", new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })); alert("Cloud data loaded! Refreshing..."); location.reload(); }
+            else alert("Cloud database empty.");
+          } else alert("Load failed. Key expired/wrong.");
+        } catch (e) { alert("Network error loading from cloud."); }
+      }
+
+      $(document).ready(() => { if (localStorage.getItem("cloud_key") && localStorage.getItem("cloud_bin_id")) { $("#cloudLoginSection").hide(); $("#cloudSyncSection").show(); updateSyncStatusUI(); } });
+
+      /* ================= 0. AUTH & SECURITY ================= */
+      function simpleHash(str) { let hash = 0; for (let i = 0; i < str.length; i++) { hash = ((hash << 5) - hash) + str.charCodeAt(i); hash |= 0; } return hash.toString(); }
+      const DEFAULT_PIN_HASH = "1753662";
+
+      function checkAuth() {
+        if (!localStorage.getItem('app_pin_hash')) localStorage.setItem('app_pin_hash', DEFAULT_PIN_HASH);
+        const exp = localStorage.getItem('session_expires');
+        if (exp && Date.now() < parseInt(exp)) unlockApp(); else { $("#loginOverlay").show(); $(".main-app-content").hide(); }
+      }
+      function attemptLogin() { const pin = $("#pinInput").val(); if (simpleHash(pin) === localStorage.getItem('app_pin_hash')) { localStorage.setItem('session_expires', Date.now() + 30 * 24 * 60 * 60 * 1000); unlockApp(); } else { $("#loginError").show(); $("#pinInput").val('').focus(); } }
+      $(document).on('keypress', '#pinInput', function (e) { if (e.which == 13) attemptLogin(); });
+      function unlockApp() { $("#loginOverlay").fadeOut(300); $(".main-app-content").fadeIn(300); $("#loginError").hide(); }
+      function logoutApp() { localStorage.removeItem('session_expires'); location.reload(); }
+      async function updateAppPin() { const newPin = $("#newPinInput").val().trim(); if (newPin.length < 4) return alert("PIN >= 4 chars."); localStorage.setItem('app_pin_hash', simpleHash(newPin)); $("#newPinInput").val(''); showToast("success", "🔑 PIN updated locally!"); if (localStorage.getItem("cloud_key")) { showToast("info", "Syncing new PIN..."); await pushToCloud(); } }
+
+      /* ================= 11. ENGAGEMENT & NOTIFICATION ENGINE ================= */
+      // State trackers so alerts only fire once per trigger window
+      let notificationsFired = { morning: false, afternoon: false, evening: false };
+
+      function initNotifications() {
+        // Request system permission on load
+        if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+          Notification.requestPermission();
+        }
+        // Run the audit loop every 60 seconds
+        setInterval(checkNotificationTriggers, 60000);
+      }
+
+      function fireNotification(title, body) {
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification(title, {
+            body: body,
+            icon: "https://mindstacksync.netlify.app/apple-touch-icon.png",
+            vibrate: [200, 100, 200] // Haptic feedback pattern for Android
+          });
+        }
+      }
+
+      function checkNotificationTriggers() {
+        const now = new Date();
+        const hour = now.getHours();
+        const mins = now.getMinutes();
+        
+        // Reset flags at midnight for the new day
+        if (hour === 0 && mins === 0) {
+          notificationsFired = { morning: false, afternoon: false, evening: false };
+        }
+
+        // 1. Morning Anchor (9:00 AM) - Protect the Baseplate
+        if (hour === 9 && mins === 0 && !notificationsFired.morning) {
+          let baseTaskId = config.hierarchy[0]; // Dynamically grabs your #1 priority (e.g., Gita)
+          let baseDone = todayData[baseTaskId] || 0;
+          let baseReq = config.dailyFixed[baseTaskId] || 1;
+          
+          if (baseDone < baseReq) {
+             fireNotification("⚓ Baseplate Alert", `The foundation is unsecured. You have ${(baseReq - baseDone).toFixed(1)}h of ${config.tasks[baseTaskId].name} left to log.`);
+          } else {
+             fireNotification("⚡ Engine Active", "Baseplate secured early. Cleared to execute deeper cognitive targets.");
+          }
+          notificationsFired.morning = true;
+        }
+
+        // 2. Mid-Day Course Correction (2:00 PM / 14:00) - Check "Waste"
+        if (hour === 14 && mins === 0 && !notificationsFired.afternoon) {
+           const prodToday = config.wasteProductive.reduce((sum, id) => sum + (todayData[id] || 0), 0);
+           const cap = getTotalCapacity(todayStr);
+           const wD = Math.max(0, cap - prodToday);
+           
+           // If more than 60% of the day's total capacity is still "wasted" by 2 PM
+           if (wD > (cap * 0.6)) { 
+              fireNotification("⚠️ Capacity Bleed", `System audit: You have ${wD.toFixed(1)}h of unutilized capacity. Time to close the gap.`);
+           }
+           notificationsFired.afternoon = true;
+        }
+
+        // 3. Evening Crunch (8:00 PM / 20:00) - The Final Push
+        if (hour === 20 && mins === 0 && !notificationsFired.evening) {
+           // Scan hierarchy to find the biggest failing baseline
+           let topTask = null;
+           let maxGap = 0;
+           config.hierarchy.forEach(id => {
+              let req = config.dailyFixed[id] || 0;
+              let done = todayData[id] || 0;
+              if (req > done && (req - done) > maxGap) {
+                 maxGap = req - done;
+                 topTask = config.tasks[id].name;
+              }
+           });
+
+           if (topTask) {
+              fireNotification("🔥 Evening Crunch", `${topTask} is slipping. You need ${maxGap.toFixed(1)}h to hit the baseline before sleep.`);
+           } else {
+              fireNotification("🌟 Systems Nominal", "All daily baselines met. Exceptional execution today.");
+           }
+           notificationsFired.evening = true;
+        }
+      }
+    </script>
+  </body>
+</html>
