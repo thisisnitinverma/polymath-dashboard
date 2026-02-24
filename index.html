@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta charset="UTF-8" />
-    <title>⚡ Polymath's Dashboard</title>
+    <title>⚡ Polymath </title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
     <link rel="icon" href="https://polymath-dashboard.netlify.app/app-icon.png" />
     <style>
@@ -190,6 +190,24 @@
         </div>
       </div>
 
+      <div class="card" style="border-left: 4px solid #00aaff;">
+        <div class="card-body" style="padding: 12px 15px;">
+          <h3 style="font-size: 1.1rem; margin-bottom: 10px; color:#00aaff;">🔔 Tactical Directives</h3>
+          <div class="row no-gutters mb-2">
+            <div class="col-7 pr-1">
+              <input type="text" id="remMsg" class="form-control form-control-sm" placeholder="Directive (e.g., Start GATE Mock)" style="background:#111;">
+            </div>
+            <div class="col-3 px-1">
+              <input type="time" id="remTime" class="form-control form-control-sm" style="background:#111;">
+            </div>
+            <div class="col-2 pl-1">
+              <button class="btn btn-sm btn-info w-100 mt-0" onclick="addReminder()" style="height: 100%;">+</button>
+            </div>
+          </div>
+          <div id="activeReminders" style="font-size:0.85rem;"></div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-body">
           <h3 style="font-size: 1.3rem; margin-bottom: 15px" id="ui_logTitle">⏱️ Log Hours</h3>
@@ -236,6 +254,7 @@
         <div class="card">
           <div class="card-body">
             <button class="btn btn-outline-danger btn-block mb-3" onclick="logoutApp()">🚪 Lock / Logout</button>
+            <button class="btn btn-outline-success btn-block mb-3" onclick="testNotification()">🔔 Enable & Test Alerts</button>
             <button class="btn btn-info btn-block mb-3" onclick="openAdvancedConfig()">🔧 Advanced Engine Config</button>
             <button class="btn btn-secondary btn-block" onclick="toggleEdit('data')">Edit Data Matrix (D/W/M)</button>
             <button class="btn btn-secondary btn-block" onclick="toggleEdit('targets')">Edit Targets (D/W/M)</button>
@@ -1180,8 +1199,9 @@ if (candidateTasks.length > 0) {
         $(`#${id}`).toast("show"); setTimeout(() => $(`#${id}`).remove(), 3500);
       }
 
-      $(document).ready(() => { initNotifications(); checkAuth(); injectInfoModal(); buildDynamicInputs(); render(); setInterval(() => { render(); }, 60000); });
+      // $(document).ready(() => { initNotifications(); checkAuth(); injectInfoModal(); buildDynamicInputs(); render(); setInterval(() => { render(); }, 60000); });
 
+      $(document).ready(() => { initNotifications(); checkAuth(); injectInfoModal(); buildDynamicInputs(); renderReminders(); render(); setInterval(() => { render(); }, 60000); });
       /* ================= 10. CLOUD SYNC & PORTABILITY ================= */
       function exportJSON() {
         const backup = { config: localStorage.getItem("config"), todayDate: localStorage.getItem("todayDate"), weekStart: localStorage.getItem("weekStart"), monthStart: localStorage.getItem("monthStart"), todayData: localStorage.getItem("todayData"), weeklyData: localStorage.getItem("weeklyData"), monthlyData: localStorage.getItem("monthlyData"), workHistory: localStorage.getItem("workHistory") };
@@ -1262,22 +1282,111 @@ if (candidateTasks.length > 0) {
       // State trackers so alerts only fire once per trigger window
       let notificationsFired = { morning: false, afternoon: false, evening: false };
 
+      // Tactical Directives State
+      let customReminders = JSON.parse(localStorage.getItem("customReminders")) || [];
+
+      function saveReminders() {
+        localStorage.setItem("customReminders", JSON.stringify(customReminders));
+        renderReminders();
+      }
+
+      function addReminder() {
+        let msg = $("#remMsg").val().trim();
+        let time = $("#remTime").val();
+        if (!msg || !time) return showToast("danger", "⚠️ Enter both a directive and a time.");
+        
+        customReminders.push({ id: Date.now(), msg: msg, time: time, triggered: false });
+        $("#remMsg").val("");
+        $("#remTime").val("");
+        saveReminders();
+        showToast("success", "Directive armed.");
+      }
+
+      function deleteReminder(id) {
+        customReminders = customReminders.filter(r => r.id !== id);
+        saveReminders();
+      }
+
+      function renderReminders() {
+        if (customReminders.length === 0) {
+          $("#activeReminders").html(`<span style="color:#555; font-style:italic;">No active directives.</span>`);
+          return;
+        }
+        let html = "";
+        customReminders.forEach(r => {
+          let statusColor = r.triggered ? "#555" : "#eaeaea";
+          let statusText = r.triggered ? "<span style='color:#00cc88; font-size:0.7rem;'> (Executed)</span>" : "";
+          html += `<div class="d-flex justify-content-between align-items-center mb-1 p-1 border rounded" style="background:#1a1a1a; border-color:#333 !important;">
+            <span style="color:${statusColor}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              🕒 <strong style="color:#00aaff;">${r.time}</strong> - ${r.msg} ${statusText}
+            </span>
+            <button class="btn btn-sm btn-danger py-0 px-2" onclick="deleteReminder(${r.id})" style="font-size:0.7rem;">X</button>
+          </div>`;
+        });
+        $("#activeReminders").html(html);
+      }
+
+      // Register Service Worker for Mobile Notifications
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(function(reg) {
+          console.log('Service Worker Registered!', reg);
+        }).catch(function(err) {
+          console.log('Service Worker registration failed: ', err);
+        });
+      }
+
       function initNotifications() {
-        // Request system permission on load
         if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
           Notification.requestPermission();
         }
-        // Run the audit loop every 60 seconds
         setInterval(checkNotificationTriggers, 60000);
       }
 
       function fireNotification(title, body) {
         if ("Notification" in window && Notification.permission === "granted") {
-          new Notification(title, {
-            body: body,
-            icon: "https://mindstacksync.netlify.app/apple-touch-icon.png",
-            vibrate: [200, 100, 200] // Haptic feedback pattern for Android
+          navigator.serviceWorker.ready.then(function(registration) {
+            registration.showNotification(title, {
+              body: body,
+              icon: "https://mindstacksync.netlify.app/apple-touch-icon.png",
+              vibrate: [200, 100, 200],
+              badge: "https://mindstacksync.netlify.app/apple-touch-icon.png"
+            });
           });
+        }
+      }
+
+      function testNotification() {
+        if (!("Notification" in window)) {
+          alert("⚠️ Your browser does not support notifications.");
+          return;
+        }
+
+        if (Notification.permission === "granted") {
+          navigator.serviceWorker.ready.then(function(registration) {
+            registration.showNotification("⚡ System Active", {
+              body: "Service Worker notifications are fully operational!",
+              icon: "https://mindstacksync.netlify.app/apple-touch-icon.png",
+              vibrate: [200, 100, 200]
+            });
+          });
+          showToast("success", "Test command sent to Service Worker.");
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+              navigator.serviceWorker.ready.then(function(registration) {
+                registration.showNotification("⚡ System Active", {
+                  body: "Permission granted! Engine alerts armed.",
+                  icon: "https://mindstacksync.netlify.app/apple-touch-icon.png",
+                  vibrate: [200, 100, 200]
+                });
+              });
+              showToast("success", "Permissions granted!");
+            } else {
+              alert("⚠️ Permission was denied.");
+            }
+          });
+        } else {
+          alert("⛔ Notifications are BLOCKED. Check your phone settings.");
         }
       }
 
@@ -1285,6 +1394,24 @@ if (candidateTasks.length > 0) {
         const now = new Date();
         const hour = now.getHours();
         const mins = now.getMinutes();
+
+        // Check Custom Tactical Directives
+        let currentH = hour.toString().padStart(2, '0');
+        let currentM = mins.toString().padStart(2, '0');
+        let currentTimeStr = `${currentH}:${currentM}`;
+        let remindersChanged = false;
+
+        customReminders.forEach(r => {
+          // Reset triggered status at midnight so daily reminders repeat
+          if (hour === 0 && mins === 0) r.triggered = false;
+
+          if (!r.triggered && currentTimeStr === r.time) {
+            fireNotification("🔔 Tactical Directive", r.msg);
+            r.triggered = true;
+            remindersChanged = true;
+          }
+        });
+        if (remindersChanged) saveReminders();
         
         // Reset flags at midnight for the new day
         if (hour === 0 && mins === 0) {
@@ -1338,6 +1465,40 @@ if (candidateTasks.length > 0) {
               fireNotification("🌟 Systems Nominal", "All daily baselines met. Exceptional execution today.");
            }
            notificationsFired.evening = true;
+        }
+      }
+
+      function testNotification() {
+        if (!("Notification" in window)) {
+          alert("⚠️ Your browser does not support notifications.");
+          return;
+        }
+
+        if (Notification.permission === "granted") {
+          // If already granted, just fire the test
+          new Notification("⚡ System Active", {
+            body: "Notifications are fully operational.",
+            icon: "https://mindstacksync.netlify.app/apple-touch-icon.png",
+            vibrate: [200, 100, 200]
+          });
+          showToast("success", "Test notification fired!");
+        } else if (Notification.permission !== "denied") {
+          // Force the browser prompt via a physical click
+          Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+              new Notification("⚡ System Active", {
+                body: "Permission granted! Engine alerts armed.",
+                icon: "https://mindstacksync.netlify.app/apple-touch-icon.png",
+                vibrate: [200, 100, 200]
+              });
+              showToast("success", "Permissions granted!");
+            } else {
+              alert("⚠️ Permission was denied.");
+            }
+          });
+        } else {
+          // If the user previously blocked them
+          alert("⛔ Notifications are currently BLOCKED by your browser. You must tap the lock icon in your URL bar, go to Site Settings, and change Notifications to 'Allow'.");
         }
       }
     </script>
