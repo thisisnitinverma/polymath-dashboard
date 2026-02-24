@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <title>⚡ Polymath </title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
-    <link rel="icon" href="https://polymath-dashboard.netlify.app/app-icon.png" />
+    <link rel="icon" href="https://mindstacksync.netlify.app/apple-touch-icon.png" />
     <style>
       body { font-family: Arial, sans-serif; background: #0f0f0f; color: #eaeaea; padding: 15px; }
       h1 { color: #00cc88; font-size: 1.8rem; margin-bottom: 20px; }
@@ -435,7 +435,7 @@
           priorityMetSubtext: "Proceed to next logical step.",
           baseReqText: "{TaskName}",
           // baseReqSubtext: "",
-          customerPriorityText: "Job Mode",
+          customerPriorityText: "Sustenance Mode",
           customerPrioritySubtext: "Process and clear.",
         },
         tasks: {
@@ -1180,7 +1180,7 @@ if (candidateTasks.length > 0) {
         $(`#${id}`).toast("show"); setTimeout(() => $(`#${id}`).remove(), 3500);
       }
 
-      $(document).ready(() => { initNotifications(); checkAuth(); injectInfoModal(); buildDynamicInputs(); render(); setInterval(() => { render(); }, 60000); });
+      $(document).ready(() => { checkAuth(); injectInfoModal(); buildDynamicInputs(); render(); setInterval(() => { render(); }, 60000); });
 
       /* ================= 10. CLOUD SYNC & PORTABILITY ================= */
       function exportJSON() {
@@ -1257,89 +1257,7 @@ if (candidateTasks.length > 0) {
       function unlockApp() { $("#loginOverlay").fadeOut(300); $(".main-app-content").fadeIn(300); $("#loginError").hide(); }
       function logoutApp() { localStorage.removeItem('session_expires'); location.reload(); }
       async function updateAppPin() { const newPin = $("#newPinInput").val().trim(); if (newPin.length < 4) return alert("PIN >= 4 chars."); localStorage.setItem('app_pin_hash', simpleHash(newPin)); $("#newPinInput").val(''); showToast("success", "🔑 PIN updated locally!"); if (localStorage.getItem("cloud_key")) { showToast("info", "Syncing new PIN..."); await pushToCloud(); } }
-
-      /* ================= 11. ENGAGEMENT & NOTIFICATION ENGINE ================= */
-      // State trackers so alerts only fire once per trigger window
-      let notificationsFired = { morning: false, afternoon: false, evening: false };
-
-      function initNotifications() {
-        // Request system permission on load
-        if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-          Notification.requestPermission();
-        }
-        // Run the audit loop every 60 seconds
-        setInterval(checkNotificationTriggers, 60000);
-      }
-
-      function fireNotification(title, body) {
-        if ("Notification" in window && Notification.permission === "granted") {
-          new Notification(title, {
-            body: body,
-            icon: "https://mindstacksync.netlify.app/apple-touch-icon.png",
-            vibrate: [200, 100, 200] // Haptic feedback pattern for Android
-          });
-        }
-      }
-
-      function checkNotificationTriggers() {
-        const now = new Date();
-        const hour = now.getHours();
-        const mins = now.getMinutes();
-        
-        // Reset flags at midnight for the new day
-        if (hour === 0 && mins === 0) {
-          notificationsFired = { morning: false, afternoon: false, evening: false };
-        }
-
-        // 1. Morning Anchor (9:00 AM) - Protect the Baseplate
-        if (hour === 9 && mins === 0 && !notificationsFired.morning) {
-          let baseTaskId = config.hierarchy[0]; // Dynamically grabs your #1 priority (e.g., Gita)
-          let baseDone = todayData[baseTaskId] || 0;
-          let baseReq = config.dailyFixed[baseTaskId] || 1;
-          
-          if (baseDone < baseReq) {
-             fireNotification("⚓ Baseplate Alert", `The foundation is unsecured. You have ${(baseReq - baseDone).toFixed(1)}h of ${config.tasks[baseTaskId].name} left to log.`);
-          } else {
-             fireNotification("⚡ Engine Active", "Baseplate secured early. Cleared to execute deeper cognitive targets.");
-          }
-          notificationsFired.morning = true;
-        }
-
-        // 2. Mid-Day Course Correction (2:00 PM / 14:00) - Check "Waste"
-        if (hour === 14 && mins === 0 && !notificationsFired.afternoon) {
-           const prodToday = config.wasteProductive.reduce((sum, id) => sum + (todayData[id] || 0), 0);
-           const cap = getTotalCapacity(todayStr);
-           const wD = Math.max(0, cap - prodToday);
-           
-           // If more than 60% of the day's total capacity is still "wasted" by 2 PM
-           if (wD > (cap * 0.6)) { 
-              fireNotification("⚠️ Capacity Bleed", `System audit: You have ${wD.toFixed(1)}h of unutilized capacity. Time to close the gap.`);
-           }
-           notificationsFired.afternoon = true;
-        }
-
-        // 3. Evening Crunch (8:00 PM / 20:00) - The Final Push
-        if (hour === 20 && mins === 0 && !notificationsFired.evening) {
-           // Scan hierarchy to find the biggest failing baseline
-           let topTask = null;
-           let maxGap = 0;
-           config.hierarchy.forEach(id => {
-              let req = config.dailyFixed[id] || 0;
-              let done = todayData[id] || 0;
-              if (req > done && (req - done) > maxGap) {
-                 maxGap = req - done;
-                 topTask = config.tasks[id].name;
-              }
-           });
-
-           if (topTask) {
-              fireNotification("🔥 Evening Crunch", `${topTask} is slipping. You need ${maxGap.toFixed(1)}h to hit the baseline before sleep.`);
-           } else {
-              fireNotification("🌟 Systems Nominal", "All daily baselines met. Exceptional execution today.");
-           }
-           notificationsFired.evening = true;
-        }
-      }
+      
     </script>
   </body>
 </html>
